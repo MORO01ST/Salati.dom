@@ -1,0 +1,165 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Spiritual profile, settings, and aggregated progress stats for a Salati user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "friendCode": { "type": "string", "description": "Shareable friend code" },
+        "totalPrayersLogged": { "type": "integer", "description": "Cumulative logged prayers" },
+        "totalTasbihCount": { "type": "integer", "description": "Cumulative tasbih count" },
+        "totalWirdPages": { "type": "integer", "description": "Cumulative Quran Wird pages read" },
+        "currentStreak": { "type": "integer", "description": "Current consecutive days streak" },
+        "bestStreak": { "type": "integer", "description": "Longest consecutive days streak" },
+        "calculationMethod": {
+          "type": "string",
+          "enum": ["UMM_AL_QURA", "MWL", "EGYPTIAN", "ISNA", "KARACHI"],
+          "description": "Prayer times calculation method"
+        },
+        "cityName": { "type": "string", "description": "Selected or detected city name" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp on creation" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp on update" }
+      },
+      "required": ["userId", "displayName", "friendCode", "totalPrayersLogged", "totalTasbihCount", "totalWirdPages", "currentStreak", "bestStreak", "calculationMethod", "createdAt"]
+    },
+    "DailyLog": {
+      "title": "DailyLog",
+      "description": "Daily prayer check-ins, Quran Wird progress, and Adhkar tracking",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID" },
+        "dateKey": { "type": "string", "description": "YYYY-MM-DD date identifier" },
+        "fajrDone": { "type": "boolean" },
+        "dhuhrDone": { "type": "boolean" },
+        "asrDone": { "type": "boolean" },
+        "maghribDone": { "type": "boolean" },
+        "ishaDone": { "type": "boolean" },
+        "wirdPagesDone": { "type": "integer" },
+        "wirdTargetPages": { "type": "integer" },
+        "dhikrCount": { "type": "integer" },
+        "morningAdhkarDone": { "type": "boolean" },
+        "eveningAdhkarDone": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "dateKey", "fajrDone", "dhuhrDone", "asrDone", "maghribDone", "ishaDone", "wirdPagesDone", "wirdTargetPages", "dhikrCount", "morningAdhkarDone", "eveningAdhkarDone", "createdAt"]
+    },
+    "Bookmark": {
+      "title": "Bookmark",
+      "description": "Saved Dua or Quran Tafsir verse bookmark",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "itemType": { "type": "string", "enum": ["DUA", "DHIKR", "TAFSIR"] },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "referenceKey": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "itemType", "title", "referenceKey", "createdAt"]
+    },
+    "MemorizationCircle": {
+      "title": "MemorizationCircle",
+      "description": "Group Quran memorization circle (Halaqah)",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string" },
+        "title": { "type": "string" },
+        "surahName": { "type": "string" },
+        "targetVerses": { "type": "integer" },
+        "inviteCode": { "type": "string" },
+        "isPublic": { "type": "boolean" },
+        "memberCount": { "type": "integer" },
+        "totalMemorizedVerses": { "type": "integer" },
+        "memberUids": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "title", "surahName", "targetVerses", "inviteCode", "isPublic", "memberCount", "totalMemorizedVerses", "memberUids", "createdAt"]
+    },
+    "CircleMember": {
+      "title": "CircleMember",
+      "description": "Member progress entry inside a memorization circle",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "circleId": { "type": "string" },
+        "circleOwnerId": { "type": "string" },
+        "isPublic": { "type": "boolean" },
+        "displayName": { "type": "string" },
+        "memorizedVerses": { "type": "integer" },
+        "lastSurahNote": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "circleId", "circleOwnerId", "isPublic", "displayName", "memorizedVerses", "createdAt"]
+    },
+    "AchievementPost": {
+      "title": "AchievementPost",
+      "description": "Shared spiritual milestone or achievement card for friends",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "badgeTitle": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string", "enum": ["PRAYER", "QURAN", "DHIKR", "STREAK"] },
+        "streakDays": { "type": "integer" },
+        "ameenCount": { "type": "integer" },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "authorName", "badgeTitle", "description", "category", "streakDays", "ameenCount", "isPublic", "createdAt"]
+    },
+    "CustomSupplication": {
+      "title": "CustomSupplication",
+      "description": "User-authored personal Dhikr or Dua saved in custom favorites list",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "supplicationType": { "type": "string", "enum": ["DHIKR", "DUA"] },
+        "title": { "type": "string" },
+        "arabicText": { "type": "string" },
+        "occasionNote": { "type": "string" },
+        "targetCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "supplicationType", "title", "arabicText", "targetCount", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Owner-scoped user spiritual profile and settings"
+    },
+    "/users/{userId}/dailyLogs/{dateKey}": {
+      "schema": { "$ref": "#/entities/DailyLog" },
+      "description": "Owner-scoped daily prayer, Wird, and Adhkar logs"
+    },
+    "/users/{userId}/bookmarks/{bookmarkId}": {
+      "schema": { "$ref": "#/entities/Bookmark" },
+      "description": "Owner-scoped saved Duas and Quran Tafsir bookmarks"
+    },
+    "/users/{userId}/customSupplications/{supplicationId}": {
+      "schema": { "$ref": "#/entities/CustomSupplication" },
+      "description": "Owner-scoped user-authored personal Adhkar and Duas"
+    },
+    "/circles/{circleId}": {
+      "schema": { "$ref": "#/entities/MemorizationCircle" },
+      "description": "Group Quran memorization circles"
+    },
+    "/circles/{circleId}/members/{memberId}": {
+      "schema": { "$ref": "#/entities/CircleMember" },
+      "description": "Member progress inside a memorization circle"
+    },
+    "/achievements/{achievementId}": {
+      "schema": { "$ref": "#/entities/AchievementPost" },
+      "description": "Shared spiritual achievements for friends and community encouragement"
+    }
+  }
+}

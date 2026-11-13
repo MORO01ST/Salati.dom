@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="salati_emerald">#FF0B4F3E</color>
+    <color name="salati_emerald_dark">#FF063328</color>
+    <color name="salati_gold">#FFB68A2D</color>
+    <color name="salati_parchment">#FFFAF7F0</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

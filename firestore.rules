@@ -1,0 +1,319 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 60 &&
+             data.friendCode is string && data.friendCode.size() >= 4 && data.friendCode.size() <= 16 &&
+             data.totalPrayersLogged is int && data.totalPrayersLogged >= 0 && data.totalPrayersLogged <= 1000000 &&
+             data.totalTasbihCount is int && data.totalTasbihCount >= 0 && data.totalTasbihCount <= 100000000 &&
+             data.totalWirdPages is int && data.totalWirdPages >= 0 && data.totalWirdPages <= 1000000 &&
+             data.currentStreak is int && data.currentStreak >= 0 && data.currentStreak <= 36500 &&
+             data.bestStreak is int && data.bestStreak >= 0 && data.bestStreak <= 36500 &&
+             data.calculationMethod in ['UMM_AL_QURA', 'MWL', 'EGYPTIAN', 'ISNA', 'KARACHI'] &&
+             (!('cityName' in data) || (data.cityName is string && data.cityName.size() <= 80)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidDailyLog(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.dateKey is string && data.dateKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+             data.fajrDone is bool &&
+             data.dhuhrDone is bool &&
+             data.asrDone is bool &&
+             data.maghribDone is bool &&
+             data.ishaDone is bool &&
+             data.wirdPagesDone is int && data.wirdPagesDone >= 0 && data.wirdPagesDone <= 604 &&
+             data.wirdTargetPages is int && data.wirdTargetPages >= 1 && data.wirdTargetPages <= 604 &&
+             data.dhikrCount is int && data.dhikrCount >= 0 && data.dhikrCount <= 100000 &&
+             data.morningAdhkarDone is bool &&
+             data.eveningAdhkarDone is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidBookmark(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.itemType in ['DUA', 'DHIKR', 'TAFSIR'] &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+             (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 200)) &&
+             data.referenceKey is string && data.referenceKey.size() >= 1 && data.referenceKey.size() <= 100 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidCustomSupplication(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.supplicationType in ['DHIKR', 'DUA'] &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+             data.arabicText is string && data.arabicText.size() >= 1 && data.arabicText.size() <= 1000 &&
+             (!('occasionNote' in data) || (data.occasionNote is string && data.occasionNote.size() <= 160)) &&
+             data.targetCount is int && data.targetCount >= 1 && data.targetCount <= 1000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidCircle(data) {
+      return data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+             data.title is string && data.title.size() >= 2 && data.title.size() <= 80 &&
+             data.surahName is string && data.surahName.size() >= 1 && data.surahName.size() <= 60 &&
+             data.targetVerses is int && data.targetVerses >= 1 && data.targetVerses <= 6236 &&
+             data.inviteCode is string && data.inviteCode.size() >= 4 && data.inviteCode.size() <= 12 &&
+             data.isPublic is bool &&
+             data.memberCount is int && data.memberCount >= 1 && data.memberCount <= 50 &&
+             data.totalMemorizedVerses is int && data.totalMemorizedVerses >= 0 && data.totalMemorizedVerses <= 1000000 &&
+             data.memberUids is list && data.memberUids.size() >= 1 && data.memberUids.size() <= 50 &&
+             data.memberUids[0] is string &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidCircleMember(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.circleId is string && data.circleId.size() >= 1 && data.circleId.size() <= 128 &&
+             data.circleOwnerId is string && data.circleOwnerId.size() >= 1 && data.circleOwnerId.size() <= 128 &&
+             data.isPublic is bool &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 60 &&
+             data.memorizedVerses is int && data.memorizedVerses >= 0 && data.memorizedVerses <= 6236 &&
+             (!('lastSurahNote' in data) || (data.lastSurahNote is string && data.lastSurahNote.size() <= 120)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidAchievement(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 60 &&
+             data.badgeTitle is string && data.badgeTitle.size() >= 1 && data.badgeTitle.size() <= 80 &&
+             data.description is string && data.description.size() >= 1 && data.description.size() <= 240 &&
+             data.category in ['PRAYER', 'QURAN', 'DHIKR', 'STREAK'] &&
+             data.streakDays is int && data.streakDays >= 0 && data.streakDays <= 36500 &&
+             data.ameenCount is int && data.ameenCount >= 0 && data.ameenCount <= 1000000 &&
+             data.isPublic is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    // 1. User Profile (Owner-only)
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() && isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'friendCode', 'totalPrayersLogged', 'totalTasbihCount', 'totalWirdPages', 'currentStreak', 'bestStreak', 'calculationMethod', 'createdAt']) &&
+                       incoming().keys().hasOnly(['userId', 'displayName', 'friendCode', 'totalPrayersLogged', 'totalTasbihCount', 'totalWirdPages', 'currentStreak', 'bestStreak', 'calculationMethod', 'cityName', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isSignedIn() && isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'totalPrayersLogged', 'totalTasbihCount', 'totalWirdPages', 'currentStreak', 'bestStreak', 'calculationMethod', 'cityName', 'updatedAt']);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      // 2. Daily Logs Subcollection (Owner-only)
+      match /dailyLogs/{dateKey} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(dateKey) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(dateKey) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().dateKey == dateKey &&
+                         incoming().keys().hasAll(['userId', 'dateKey', 'fajrDone', 'dhuhrDone', 'asrDone', 'maghribDone', 'ishaDone', 'wirdPagesDone', 'wirdTargetPages', 'dhikrCount', 'morningAdhkarDone', 'eveningAdhkarDone', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'dateKey', 'fajrDone', 'dhuhrDone', 'asrDone', 'maghribDone', 'ishaDone', 'wirdPagesDone', 'wirdTargetPages', 'dhikrCount', 'morningAdhkarDone', 'eveningAdhkarDone', 'createdAt', 'updatedAt']) &&
+                         isValidDailyLog(incoming());
+
+        allow update: if isSignedIn() && isValidId(userId) && isValidId(dateKey) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == existing().userId &&
+                         incoming().dateKey == existing().dateKey &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidDailyLog(incoming()) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['fajrDone', 'dhuhrDone', 'asrDone', 'maghribDone', 'ishaDone', 'wirdPagesDone', 'wirdTargetPages', 'dhikrCount', 'morningAdhkarDone', 'eveningAdhkarDone', 'updatedAt']);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(dateKey) && request.auth.uid == userId;
+      }
+
+      // 3. Bookmarks Subcollection (Owner-only)
+      match /bookmarks/{bookmarkId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(bookmarkId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(bookmarkId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'itemType', 'title', 'referenceKey', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'itemType', 'title', 'subtitle', 'referenceKey', 'createdAt', 'updatedAt']) &&
+                         isValidBookmark(incoming());
+
+        allow update: if isSignedIn() && isValidId(userId) && isValidId(bookmarkId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidBookmark(incoming()) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'subtitle', 'updatedAt']);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(bookmarkId) && request.auth.uid == userId;
+      }
+
+      // 3b. Custom User-Authored Supplications (Owner-only)
+      match /customSupplications/{supplicationId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(supplicationId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(supplicationId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'supplicationType', 'title', 'arabicText', 'targetCount', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'supplicationType', 'title', 'arabicText', 'occasionNote', 'targetCount', 'createdAt', 'updatedAt']) &&
+                         isValidCustomSupplication(incoming());
+
+        allow update: if isSignedIn() && isValidId(userId) && isValidId(supplicationId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidCustomSupplication(incoming()) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['supplicationType', 'title', 'arabicText', 'occasionNote', 'targetCount', 'updatedAt']);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(supplicationId) && request.auth.uid == userId;
+      }
+    }
+
+    // 4. Memorization Circles (Halaqat)
+    match /circles/{circleId} {
+      allow get: if isSignedIn() && isValidId(circleId) &&
+                    (existing().isPublic == true || request.auth.uid in existing().memberUids);
+      allow list: if isSignedIn() &&
+                     (resource.data.isPublic == true || request.auth.uid in resource.data.memberUids);
+
+      allow create: if isSignedIn() && isValidId(circleId) &&
+                       isValidCircle(incoming()) &&
+                       incoming().ownerId == request.auth.uid &&
+                       incoming().memberUids.size() == 1 &&
+                       request.auth.uid in incoming().memberUids &&
+                       incoming().memberCount == 1 &&
+                       incoming().keys().hasAll(['ownerId', 'title', 'surahName', 'targetVerses', 'inviteCode', 'isPublic', 'memberCount', 'totalMemorizedVerses', 'memberUids', 'createdAt']) &&
+                       incoming().keys().hasOnly(['ownerId', 'title', 'surahName', 'targetVerses', 'inviteCode', 'isPublic', 'memberCount', 'totalMemorizedVerses', 'memberUids', 'createdAt', 'updatedAt']);
+
+      allow update: if isSignedIn() && isValidId(circleId) &&
+                       isValidCircle(incoming()) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().inviteCode == existing().inviteCode &&
+                       incoming().createdAt == existing().createdAt && (
+                         // Action 1: Owner updates circle metadata
+                         (request.auth.uid == existing().ownerId &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'surahName', 'targetVerses', 'isPublic', 'updatedAt'])) ||
+                         // Action 2: Authenticated user joins circle
+                         (!(request.auth.uid in existing().memberUids) &&
+                          existing().isPublic == true &&
+                          request.auth.uid in incoming().memberUids &&
+                          incoming().memberUids.hasAll(existing().memberUids) &&
+                          incoming().memberUids.size() == existing().memberUids.size() + 1 &&
+                          incoming().memberCount == existing().memberCount + 1 &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['memberUids', 'memberCount', 'updatedAt'])) ||
+                         // Action 3: Circle member logs memorized verses increment
+                         (request.auth.uid in existing().memberUids &&
+                          incoming().totalMemorizedVerses >= existing().totalMemorizedVerses &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['totalMemorizedVerses', 'updatedAt']))
+                       );
+
+      allow delete: if isSignedIn() && isValidId(circleId) && existing().ownerId == request.auth.uid;
+
+      // 5. Circle Members Subcollection
+      match /members/{memberId} {
+        allow get: if isSignedIn() && isValidId(circleId) && isValidId(memberId) &&
+                      (existing().isPublic == true ||
+                       existing().userId == request.auth.uid ||
+                       request.auth.uid in get(/databases/$(database)/documents/circles/$(circleId)).data.memberUids);
+
+        allow list: if isSignedIn() &&
+                       (resource.data.isPublic == true ||
+                        resource.data.userId == request.auth.uid ||
+                        resource.data.circleOwnerId == request.auth.uid);
+
+        allow create: if isSignedIn() && isValidId(circleId) && isValidId(memberId) &&
+                         request.auth.uid == memberId &&
+                         isValidCircleMember(incoming()) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().circleId == circleId &&
+                         exists(/databases/$(database)/documents/circles/$(circleId)) &&
+                         get(/databases/$(database)/documents/circles/$(circleId)).data.ownerId == incoming().circleOwnerId &&
+                         get(/databases/$(database)/documents/circles/$(circleId)).data.isPublic == incoming().isPublic &&
+                         request.auth.uid in get(/databases/$(database)/documents/circles/$(circleId)).data.memberUids &&
+                         incoming().keys().hasAll(['userId', 'circleId', 'circleOwnerId', 'isPublic', 'displayName', 'memorizedVerses', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'circleId', 'circleOwnerId', 'isPublic', 'displayName', 'memorizedVerses', 'lastSurahNote', 'createdAt', 'updatedAt']);
+
+        allow update: if isSignedIn() && isValidId(circleId) && isValidId(memberId) &&
+                         request.auth.uid == memberId &&
+                         isValidCircleMember(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().circleId == existing().circleId &&
+                         incoming().circleOwnerId == existing().circleOwnerId &&
+                         incoming().isPublic == existing().isPublic &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'memorizedVerses', 'lastSurahNote', 'updatedAt']);
+
+        allow delete: if isSignedIn() && isValidId(circleId) && isValidId(memberId) &&
+                         (request.auth.uid == memberId ||
+                          get(/databases/$(database)/documents/circles/$(circleId)).data.ownerId == request.auth.uid);
+      }
+    }
+
+    // 6. Social Achievements Feed
+    match /achievements/{achievementId} {
+      allow get: if isSignedIn() && isValidId(achievementId) &&
+                    (existing().isPublic == true || existing().userId == request.auth.uid);
+      allow list: if isSignedIn() &&
+                     (resource.data.isPublic == true || resource.data.userId == request.auth.uid);
+
+      allow create: if isSignedIn() && isValidId(achievementId) &&
+                       isValidAchievement(incoming()) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().ameenCount == 0 &&
+                       incoming().keys().hasAll(['userId', 'authorName', 'badgeTitle', 'description', 'category', 'streakDays', 'ameenCount', 'isPublic', 'createdAt']) &&
+                       incoming().keys().hasOnly(['userId', 'authorName', 'badgeTitle', 'description', 'category', 'streakDays', 'ameenCount', 'isPublic', 'createdAt', 'updatedAt']);
+
+      allow update: if isSignedIn() && isValidId(achievementId) &&
+                       isValidAchievement(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt && (
+                         // Action 1: Author updates text/visibility
+                         (existing().userId == request.auth.uid &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['badgeTitle', 'description', 'isPublic', 'updatedAt'])) ||
+                         // Action 2: Friend sends Ameen encouragement
+                         (existing().isPublic == true &&
+                          incoming().ameenCount == existing().ameenCount + 1 &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['ameenCount', 'updatedAt']))
+                       );
+
+      allow delete: if isSignedIn() && isValidId(achievementId) && existing().userId == request.auth.uid;
+    }
+  }
+}
